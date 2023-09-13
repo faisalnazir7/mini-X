@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import userRoute from './routes/userRoute';
 
 dotenv.config();
 const app = express();
@@ -25,6 +26,9 @@ app.use(cors());
 app.get('/', (req: Request, res: Response) => {
   res.send('Home Page');
 });
+
+// Routes Middleware
+app.use("/api/users", userRoute);
 
 // Connect to DB
 mongoose
