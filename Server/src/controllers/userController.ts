@@ -7,6 +7,10 @@ const generateToken = (id: string) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || '', { expiresIn: '1d' });
 };
 
+interface CustomRequest extends Request {
+  userId?: string;
+}
+
 // Register User
 const registerUser = async (req: Request, res: Response) => {
   try {
@@ -140,4 +144,87 @@ const logoutUser = async (req: Request, res: Response) => {
   }
 };
 
-export { registerUser, loginUser, logoutUser};
+//Follow users
+const followUser = async (req: CustomRequest, res: Response) => {
+  try {
+    const followId: string = req.params.id;
+
+    // Update the user being followed
+    const updatedUserFollowing: IUser | null = await User.findByIdAndUpdate(
+      followId,
+      {
+        $push: { followers: req.userId },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedUserFollowing) {
+      return res.status(404).json({ error: 'User being followed not found' });
+    }
+
+    // Update the current user
+    const updatedCurrentUser: IUser | null = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        $push: { following: followId },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedCurrentUser) {
+      return res.status(404).json({ error: 'Current user not found' });
+    }
+
+    res.json(updatedCurrentUser);
+  } catch (error) {
+    console.error(error);
+    res.status(422).json( 'Internal Server Error' );
+  }
+};
+
+const unfollowUser = async (req: CustomRequest, res: Response) => {
+  try {
+    const unfollowId: string = req.params.id;
+
+    // Update the user being unfollowed
+    const updatedUserFollowers: IUser | null = await User.findByIdAndUpdate(
+      unfollowId,
+      {
+        $pull: { followers: req.userId },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedUserFollowers) {
+      return res.status(404).json({ error: 'User being unfollowed not found' });
+    }
+
+    // Update the current user
+    const updatedCurrentUser: IUser | null = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        $pull: { following: unfollowId },
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!updatedCurrentUser) {
+      return res.status(404).json({ error: 'Current user not found' });
+    }
+
+    res.json(updatedCurrentUser);
+  } catch (error) {
+    console.error(error);
+    res.status(422).json('Internal Server Error');
+  }
+};
+
+export { registerUser, loginUser, logoutUser, followUser, unfollowUser };
