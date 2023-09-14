@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 interface IUser extends Document {
   // Define user properties here
+  userId?: string;
 }
 
 interface IPost extends Document {
@@ -38,6 +39,7 @@ const postsSchema: Schema<IPost> = new Schema<IPost>({
     ref: 'USER',
   },
 });
+
 
 const PostModel: Model<IPost> = mongoose.model<IPost>('POSTS', postsSchema);
 export default PostModel;

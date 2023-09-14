@@ -117,7 +117,7 @@ const loginUser = async (req: Request, res: Response) => {
       });
     } else {
       res.status(400);
-      throw new Error('Invalid email or password');
+      throw new Error('Invalid username or password');
     }
   } catch (error) {
     console.error(error);

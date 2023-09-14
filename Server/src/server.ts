@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import userRoute from './routes/userRoute';
+import postRoute from './routes/postRoute';
 
 dotenv.config();
 const app = express();
@@ -29,6 +30,7 @@ app.get('/', (req: Request, res: Response) => {
 
 // Routes Middleware
 app.use("/api/users", userRoute);
+app.use("/api/post", postRoute);
 
 // Connect to DB
 mongoose
