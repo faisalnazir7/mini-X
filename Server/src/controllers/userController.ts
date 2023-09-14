@@ -74,27 +74,29 @@ const registerUser = async (req: Request, res: Response) => {
 // +++++++++++ Login User ++++++++++++++++++++++
 const loginUser = async (req: Request, res: Response) => {
   try {
-    const { userName, password } = req.body;
+    const { userName: inputUserName, password } = req.body;
 
     // Validate Request
-    if (!userName || !password) {
-      res.status(400);
-      throw new Error('Please add email and password');
+    if (!inputUserName || !password) {
+      return res.status(400).json({ error: 'Please provide a username and password' });
     }
 
     // Check if user exists
-    const user = await User.findOne({ userName });
+    const user: IUser | null = await User.findOne({ userName: inputUserName });
 
     if (!user) {
-      res.status(400);
-      throw new Error('User not found, please signup');
+      return res.status(400).json({ error: 'User not found, please sign up' });
     }
 
     // User exists, check if password is correct
-    const passwordIsCorrect = await bcrypt.compare(password, user.password);
+    const passwordIsCorrect: boolean = await bcrypt.compare(password, user.password);
+
+    if (!passwordIsCorrect) {
+      return res.status(400).json({ error: 'Invalid username or password' });
+    }
 
     // Generate Tokens
-    const token = generateToken(user._id);
+    const token: string = generateToken(user._id);
 
     // Send HTTP-only cookie
     res.cookie('token', token, {
@@ -105,25 +107,21 @@ const loginUser = async (req: Request, res: Response) => {
       secure: true,
     });
 
-    if (user && passwordIsCorrect) {
-      const { _id, name, userName, email, photo } = user;
-      res.status(200).json({
-        _id,
-        name,
-        userName,
-        email,
-        photo,
-        token,
-      });
-    } else {
-      res.status(400);
-      throw new Error('Invalid username or password');
-    }
+    const { _id, name, userName, email, photo } = user;
+    res.status(200).json({
+      _id,
+      name,
+      userName,
+      email,
+      photo,
+      token,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 // Logout User
 const logoutUser = async (req: Request, res: Response) => {

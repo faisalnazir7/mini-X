@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema, Types } from "mongoose";
+import bcrypt from "bcryptjs";
 
 // Define the User schema
 export interface IUser extends Document {
@@ -50,6 +51,19 @@ const userSchema = new Schema<IUser>({
       ref: "User",
     },
   ],
+});
+
+// Encrypt password before saving to DB
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    return next();
+  }
+
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(this.password, salt);
+  this.password = hashedPassword;
+  next();
 });
 
 // Define and export the User model
