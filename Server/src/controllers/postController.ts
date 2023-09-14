@@ -31,7 +31,7 @@ const createPost = async (req: CustomRequest, res: Response) => {
 };
 
 // Get all posts
-const getAllPosts = async (req: CustomRequest, res: Response) => {
+const getAllUserPosts = async (req: CustomRequest, res: Response) => {
     try {
       // Retrieve all contacts from the database
       const posts = await PostModel.find({ postedBy: req.userId });
@@ -105,4 +105,71 @@ const deletePost = async (req: CustomRequest, res: Response) => {
   }
 };
 
-export { createPost, getAllPosts, updatePost, deletePost };
+// Like a post (PATCH request)
+const likePost = async (req: CustomRequest, res: Response) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.userId;
+  
+      // Find the post by ID
+      const post = await PostModel.findById(postId);
+  
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+  
+      // Check if the user has already liked the post
+      if (post.likes.includes(userId)) {
+        return res.status(400).json({ error: 'You have already liked this post' });
+      }
+  
+      // Add the user's ID to the likes array
+      post.likes.push(userId);
+  
+      // Save the updated post
+      await post.save();
+  
+      res.status(200).json({ message: 'Post liked successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+  
+  
+  // Unlike a post
+  const unlikePost = async (req: CustomRequest, res: Response) => {
+    try {
+      const postId = req.params.id;
+      const userId = req.userId;
+  
+      // Find the post by ID
+      const post = await PostModel.findById(postId);
+  
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+  
+      // Check if the user has liked the post
+      if (!post.likes.includes(userId)) {
+        return res.status(400).json({ error: 'You have not liked this post' });
+      }
+  
+      // Remove the user's ID from the likes array
+      const updatedLikes = post.likes.filter((likedUserId) => likedUserId.toString() !== userId);
+  
+      // Update the post's likes with the new array
+      post.likes = updatedLikes;
+  
+      // Save the updated post
+      await post.save();
+  
+      res.status(200).json({ message: 'Post unliked successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+  
+
+export { createPost, getAllUserPosts, updatePost, deletePost, likePost, unlikePost };
