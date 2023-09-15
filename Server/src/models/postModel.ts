@@ -10,10 +10,6 @@ interface IPost extends Document {
   photo: string; // URL or path to the photo
   video: string; // URL or path to the video
   likes: IUser['_id'][];
-  comments: {
-    comment: string;
-    postedBy: IUser['_id'];
-  }[];
   postedBy: IUser['_id'];
 }
 

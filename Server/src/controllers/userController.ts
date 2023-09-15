@@ -144,6 +144,57 @@ const logoutUser = async (req: Request, res: Response) => {
   }
 };
 
+//Get current user
+const getUser = async (req: CustomRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.userId);
+
+    if (user) {
+      const { _id, name, userName, email, photo, followers, following } = user;
+      res.status(200).json({
+        _id,
+        name,
+        userName,
+        email,
+        photo,
+        followers,
+        following,
+      });
+    } else {
+      res.status(400).json({ error: 'User Not Found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+//get user by id
+const getUserById = async (req: Request, res: Response) => {
+  try {
+    const userId: string = req.params.id;
+    const user: IUser | null = await User.findById(userId);
+
+    if (user) {
+      const { _id, name, userName, email, photo, followers, following } = user;
+      res.status(200).json({
+        _id,
+        name,
+        userName,
+        email,
+        photo,
+        followers,
+        following,
+      });
+    } else {
+      res.status(404).json({ error: 'User Not Found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 //Follow users
 const followUser = async (req: CustomRequest, res: Response) => {
   try {
@@ -227,4 +278,5 @@ const unfollowUser = async (req: CustomRequest, res: Response) => {
   }
 };
 
-export { registerUser, loginUser, logoutUser, followUser, unfollowUser };
+
+export { registerUser, loginUser, logoutUser,getUser, getUserById, followUser, unfollowUser };
