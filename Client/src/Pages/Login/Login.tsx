@@ -3,33 +3,39 @@ import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../../assets/x-logo.png';
 
 function Login() {
-  const navigate = useNavigate();
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const loginUser = () => {
-    fetch(`${import.meta.env.VITE_SERVER_URL}/api/users/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userName: userName,
-        password: password,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          setMessage(data.error);
-        } else {
-          localStorage.setItem('jwt', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          navigate('/');
-        }
+  const loginUser = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/users/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userName: userName,
+          password: password,
+        }),
       });
-  }
+
+      const data = await response.json();
+
+      if (data.error) {
+        setError(data.error);
+      } else {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user_data', JSON.stringify(data));
+        document.cookie = `token=${data.token}; path=/;`;
+        navigate('/');
+      }
+    } catch (error) {
+      console.error(error);
+      setError('An error occurred during login.');
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -38,12 +44,15 @@ function Login() {
           <img className="mx-auto h-12 w-auto" src={Logo} alt="Logo" />
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Log in to your account</h2>
         </div>
-        {message && (
+        {error && (
           <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
-            <p>{message}</p>
+            <p>{error}</p>
           </div>
         )}
-        <form className="mt-8 space-y-6" onSubmit={loginUser}>
+        <form className="mt-8 space-y-6" onSubmit={(e) => {
+          e.preventDefault(); // Prevent the form from submitting and causing a page reload
+          loginUser(); // Call your login function
+        }}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="userName" className="sr-only">
