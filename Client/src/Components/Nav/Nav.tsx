@@ -1,4 +1,3 @@
-import React from 'react';
 import { Home, UserCheck, User, Users2 , LogOut} from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import logo from '../../assets/x-logo.png'
